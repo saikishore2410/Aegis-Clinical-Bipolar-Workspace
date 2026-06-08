@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "BipolarLog": {
+      "title": "Bipolar Log",
+      "description": "Daily logs of mood, sleep, anxiety, medicines, and notes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "dateString": { "type": "string" },
+        "mood": { "type": "integer" },
+        "anxiety": { "type": "integer" },
+        "energy": { "type": "integer" },
+        "sleepDuration": { "type": "number" },
+        "sleepDisruption": { "type": "string" },
+        "steps": { "type": "integer" },
+        "notes": { "type": "string" },
+        "loggedAtMode": { "type": "string" }
+      },
+      "required": ["id", "userId", "timestamp", "dateString", "mood", "sleepDuration"]
+    },
+    "SafetyPlan": {
+      "title": "Safety Plan",
+      "description": "Crisis plan containing early warning signs, contacts, and rules",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "emergencyContactName": { "type": "string" },
+        "emergencyContactPhone": { "type": "string" },
+        "psychiatristName": { "type": "string" },
+        "psychiatristPhone": { "type": "string" },
+        "earlyWarningSigns": { "type": "array" },
+        "crisisRules": { "type": "array" },
+        "lastEscrowTriggeredAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "Anonymous pin locking settings",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "isDeIdentified": { "type": "boolean" },
+        "anonymousId": { "type": "string" },
+        "pinLockEnabled": { "type": "boolean" },
+        "pinCode": { "type": "string" },
+        "isUnlocked": { "type": "boolean" }
+      },
+      "required": ["userId"]
+    },
+    "ContactMessage": {
+      "title": "Contact Message",
+      "description": "Messages sent to clinician by the user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "required": ["id", "userId", "date", "subject", "message"]
+    }
+  },
+  "firestore": {
+    "logs/{logId}": {
+      "schema": "BipolarLog",
+      "description": "User specific daily logs"
+    },
+    "safetyPlans/{userId}": {
+      "schema": "SafetyPlan",
+      "description": "User specific critical crisis safety blueprint"
+    },
+    "settings/{userId}": {
+      "schema": "UserSettings",
+      "description": "User anonymous PIN passcode preferences"
+    },
+    "contactMessages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Stored clinician notes/outbox messages queue"
+    }
+  }
+}

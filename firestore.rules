@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 3. Entity Specific Validations
+    function isValidLog(data) {
+      return data.id is string && data.id.size() <= 64
+        && data.userId is string && data.userId.size() <= 64
+        && data.userId == request.auth.uid
+        && data.mood is int && data.mood >= 1 && data.mood <= 10
+        && data.sleepDuration is number && data.sleepDuration >= 0.0 && data.sleepDuration <= 24.0;
+    }
+
+    function isValidSafetyPlan(data) {
+      return data.userId is string && data.userId.size() <= 64
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidUserSettings(data) {
+      return data.userId is string && data.userId.size() <= 64
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidContactMessage(data) {
+      return data.id is string && data.id.size() <= 64
+        && data.userId is string && data.userId.size() <= 64
+        && data.userId == request.auth.uid;
+    }
+
+    // 4. Collection Matches
+    match /logs/{logId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(logId) && isValidLog(incoming());
+      allow update: if isSignedIn() && isValidId(logId) && isValidLog(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /safetyPlans/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidSafetyPlan(incoming());
+      allow update: if isOwner(userId) && isValidSafetyPlan(incoming())
+        && incoming().userId == existing().userId;
+      allow delete: if isOwner(userId);
+    }
+
+    match /settings/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserSettings(incoming());
+      allow update: if isOwner(userId) && isValidUserSettings(incoming())
+        && incoming().userId == existing().userId;
+      allow delete: if isOwner(userId);
+    }
+
+    match /contactMessages/{messageId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(messageId) && isValidContactMessage(incoming());
+      allow update: if isSignedIn() && isValidId(messageId) && isValidContactMessage(incoming())
+        && existing().userId == request.auth.uid
+        && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}

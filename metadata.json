@@ -1,0 +1,6 @@
+{
+  "name": "Bipolar Disorder Safety Tracker",
+  "description": "A clinically designed tracking and safety framework with low-energy logging, manic speed-caps, prodrome algorithms, and local data protection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
